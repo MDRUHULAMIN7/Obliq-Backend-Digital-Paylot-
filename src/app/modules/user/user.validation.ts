@@ -22,7 +22,6 @@ const updateUserValidationSchema = z.object({
   body: z
     .object({
       name: z.string().min(1).optional(),
-      email: z.string().email().optional(),
       role: z.enum([...Object.values(USER_ROLE)] as [string, ...string[]]).optional(),
     })
     .refine((data) => Object.keys(data).length > 0, {

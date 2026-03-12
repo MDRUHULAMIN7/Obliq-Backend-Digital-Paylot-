@@ -150,7 +150,6 @@ const updateUser = async (
 
   const updateData: Partial<TUser> = {
     name: payload.name,
-    email: payload.email?.toLowerCase(),
     role: payload.role,
   };
 
