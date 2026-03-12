@@ -7,7 +7,7 @@ import { AuthServices } from './auth.service.js';
 const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: config.NODE_ENV === 'production',
-  sameSite: 'strict' as const,
+  sameSite: (config.NODE_ENV === 'production' ? 'none' : 'strict') as const,
   maxAge: 7 * 24 * 60 * 60 * 1000,
   path: '/',
 };
@@ -15,7 +15,7 @@ const REFRESH_COOKIE_OPTIONS = {
 const ACCESS_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: config.NODE_ENV === 'production',
-  sameSite: 'strict' as const,
+  sameSite: (config.NODE_ENV === 'production' ? 'none' : 'strict') as const,
   maxAge: 15 * 60 * 1000,
   path: '/',
 };

@@ -10,16 +10,43 @@ import router from './app/routes/index.js';
 import cookieParser from 'cookie-parser';
 const app: Application = express();
 
-const allowedOrigins = [
+const defaultOrigins = [
   'http://localhost:3000',
   'http://localhost:3001',
   'http://127.0.0.1:3000',
   'http://127.0.0.1:3001',
 ];
 
+const envOrigins =
+  process.env.CLIENT_URLS?.split(',').map((item) => item.trim()).filter(Boolean) ??
+  [];
+
+const allowedOrigins = [...defaultOrigins, ...envOrigins];
+
+const isAllowedOrigin = (origin?: string | null) => {
+  if (!origin) {
+    return true;
+  }
+
+  try {
+    const host = new URL(origin).host;
+    return allowedOrigins.some((rule) => {
+      if (rule === '*') {
+        return true;
+      }
+      if (rule.startsWith('*.')) {
+        return host.endsWith(rule.slice(1));
+      }
+      return origin === rule;
+    });
+  } catch {
+    return false;
+  }
+};
+
 const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (isAllowedOrigin(origin)) {
       callback(null, true);
       return;
     }
