@@ -30,7 +30,14 @@ const updateUserValidationSchema = z.object({
     }),
 });
 
+const updateStatusValidationSchema = z.object({
+  body: z.object({
+    status: z.enum([...UserStatus] as [string, ...string[]]),
+  }),
+});
+
 export const UserValidation = {
   createUserValidationSchema,
   updateUserValidationSchema,
+  updateStatusValidationSchema,
 };

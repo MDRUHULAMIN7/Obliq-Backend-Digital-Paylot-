@@ -63,7 +63,7 @@ const createUser = async (payload: Partial<TUser>, currentUser: TAuthUser) => {
 };
 
 const getUsers = async (
-  filters: { role?: string; status?: string },
+  filters: { role?: string; status?: string; search?: string; page?: number; limit?: number },
   currentUser: TAuthUser,
 ) => {
   const query: Record<string, unknown> = {};
@@ -90,7 +90,31 @@ const getUsers = async (
     query.status = filters.status;
   }
 
-  return await User.find(query).select('-password').sort({ createdAt: -1 });
+  if (filters.search) {
+    const term = filters.search.trim();
+    if (term.length) {
+      query.$or = [
+        { name: { $regex: term, $options: 'i' } },
+        { email: { $regex: term, $options: 'i' } },
+      ];
+    }
+  }
+
+  const page = Math.max(1, Number(filters.page) || 1);
+  const limit = Math.max(1, Number(filters.limit) || 10);
+  const skip = (page - 1) * limit;
+
+  const [data, total] = await Promise.all([
+    User.find(query).select('-password').sort({ createdAt: -1 }).skip(skip).limit(limit),
+    User.countDocuments(query),
+  ]);
+
+  return {
+    data,
+    total,
+    page,
+    limit,
+  };
 };
 
 const getUserById = async (id: string, currentUser: TAuthUser) => {
@@ -172,6 +196,25 @@ const banUser = async (id: string, currentUser: TAuthUser) => {
   ).select('-password');
 };
 
+const updateUserStatus = async (
+  id: string,
+  status: 'active' | 'suspended' | 'banned',
+  currentUser: TAuthUser,
+) => {
+  const user = await User.findById(id).select('-password');
+  if (!user) {
+    throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
+  }
+
+  ensureManagerAccess(currentUser, user);
+
+  return await User.findByIdAndUpdate(
+    id,
+    { status },
+    { new: true, runValidators: true },
+  ).select('-password');
+};
+
 const deleteUser = async (id: string) => {
   const deletedUser = await User.findByIdAndDelete(id);
   if (!deletedUser) {
@@ -234,6 +277,7 @@ export const userServices = {
   updateUser,
   suspendUser,
   banUser,
+  updateUserStatus,
   deleteUser,
   getUserPermissions,
   updateUserPermissions,

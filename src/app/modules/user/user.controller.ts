@@ -35,11 +35,14 @@ const createUser = catchAsync(async (req, res) => {
 
 const getUsers = catchAsync(async (req, res) => {
   const currentUser = getCurrentUser(req);
-  const { role, status } = req.query;
+  const { role, status, search, page, limit } = req.query;
   const result = await userServices.getUsers(
     {
       role: role?.toString(),
       status: status?.toString(),
+      search: search?.toString(),
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
     },
     currentUser,
   );
@@ -48,7 +51,13 @@ const getUsers = catchAsync(async (req, res) => {
     statusCode: StatusCodes.OK,
     success: true,
     message: 'Users retrieved successfully',
-    data: result,
+    data: result.data,
+    meta: {
+      page: result.page,
+      limit: result.limit,
+      total: result.total,
+      totalPages: Math.ceil(result.total / result.limit),
+    },
   });
 });
 
@@ -128,6 +137,30 @@ const banUser = catchAsync(async (req, res) => {
   });
 });
 
+const updateUserStatus = catchAsync(async (req, res) => {
+  const currentUser = getCurrentUser(req);
+  const result = await userServices.updateUserStatus(
+    req.params.id,
+    req.body.status,
+    currentUser,
+  );
+
+  await AuditServices.logAction({
+    action: 'users:status',
+    performedBy: currentUser._id.toString(),
+    targetUser: req.params.id,
+    details: { status: req.body.status },
+    ipAddress: req.ip,
+  });
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'User status updated successfully',
+    data: result,
+  });
+});
+
 const deleteUser = catchAsync(async (req, res) => {
   const currentUser = getCurrentUser(req);
   const result = await userServices.deleteUser(req.params.id);
@@ -155,5 +188,6 @@ export const userControllers = {
   updateUser,
   suspendUser,
   banUser,
+  updateUserStatus,
   deleteUser,
 };

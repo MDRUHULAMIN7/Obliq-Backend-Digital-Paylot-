@@ -10,9 +10,11 @@ import type { PermissionAtom } from '../constants/permissions.js';
 
 export const verifyToken = catchAsync(async (req, _res, next) => {
   const authHeader = req.headers.authorization;
-  const token = authHeader?.startsWith('Bearer ')
+  const headerToken = authHeader?.startsWith('Bearer ')
     ? authHeader.slice(7)
     : authHeader;
+  const cookieToken = req.cookies?.accessToken;
+  const token = headerToken || cookieToken;
 
   if (!token) {
     throw new AppError(StatusCodes.UNAUTHORIZED, 'You are not authorized!');

@@ -9,6 +9,15 @@ const REFRESH_COOKIE_OPTIONS = {
   secure: config.NODE_ENV === 'production',
   sameSite: 'strict' as const,
   maxAge: 7 * 24 * 60 * 60 * 1000,
+  path: '/',
+};
+
+const ACCESS_COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: config.NODE_ENV === 'production',
+  sameSite: 'strict' as const,
+  maxAge: 15 * 60 * 1000,
+  path: '/',
 };
 
 const loginUser = catchAsync(async (req, res) => {
@@ -16,6 +25,7 @@ const loginUser = catchAsync(async (req, res) => {
   const { refreshToken, accessToken, user } = result;
 
   res.cookie('refreshToken', refreshToken, REFRESH_COOKIE_OPTIONS);
+  res.cookie('accessToken', accessToken, ACCESS_COOKIE_OPTIONS);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -32,6 +42,8 @@ const refreshToken = catchAsync(async (req, res) => {
   const { refreshToken } = req.cookies;
   const result = await AuthServices.refreshToken(refreshToken);
 
+  res.cookie('accessToken', result.accessToken, ACCESS_COOKIE_OPTIONS);
+
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
@@ -45,6 +57,7 @@ const logout = catchAsync(async (req, res) => {
   await AuthServices.logout(refreshToken);
 
   res.clearCookie('refreshToken', REFRESH_COOKIE_OPTIONS);
+  res.clearCookie('accessToken', ACCESS_COOKIE_OPTIONS);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -54,8 +67,20 @@ const logout = catchAsync(async (req, res) => {
   });
 });
 
+const getMe = catchAsync(async (req, res) => {
+  const user = req.user;
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'User retrieved successfully!',
+    data: user ?? null,
+  });
+});
+
 export const AuthControllers = {
   loginUser,
   refreshToken,
   logout,
+  getMe,
 };

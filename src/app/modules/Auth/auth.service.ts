@@ -33,6 +33,8 @@ const loginUser = async (payload: TLoginUser) => {
 
   const jwtPayload = {
     userId: user._id.toString(),
+    role: user.role,
+    permissions: user.permissions ?? [],
   };
 
   const accessToken = createToken(
@@ -83,7 +85,11 @@ const refreshToken = async (token: string) => {
   }
 
   const accessToken = createToken(
-    { userId: user._id.toString() },
+    {
+      userId: user._id.toString(),
+      role: user.role,
+      permissions: user.permissions ?? [],
+    },
     config.jwt_access_secret as string,
     ACCESS_TOKEN_EXPIRES_IN,
   );

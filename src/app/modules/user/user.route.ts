@@ -51,6 +51,14 @@ router.patch(
   userControllers.banUser,
 );
 
+router.patch(
+  '/:id/status',
+  verifyToken,
+  checkPermission('users:edit'),
+  validateRequest(UserValidation.updateStatusValidationSchema),
+  userControllers.updateUserStatus,
+);
+
 router.delete(
   '/:id',
   verifyToken,
