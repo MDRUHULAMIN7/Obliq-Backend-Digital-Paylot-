@@ -12,9 +12,7 @@ const app: Application = express();
 
 const defaultOrigins = [
   'http://localhost:3000',
-  'http://localhost:3001',
   'https://obliq-frontend-digital-paylot.vercel.app',
-  'http://127.0.0.1:3001',
 ];
 
 const envOrigins =
