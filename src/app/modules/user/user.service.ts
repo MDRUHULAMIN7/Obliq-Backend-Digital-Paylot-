@@ -171,6 +171,13 @@ const suspendUser = async (id: string, currentUser: TAuthUser) => {
     throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
   }
 
+  if (currentUser.role === 'admin' && user.role === 'admin') {
+    throw new AppError(
+      StatusCodes.FORBIDDEN,
+      'Admin cannot suspend another admin.',
+    );
+  }
+
   ensureManagerAccess(currentUser, user);
 
   return await User.findByIdAndUpdate(
@@ -184,6 +191,13 @@ const banUser = async (id: string, currentUser: TAuthUser) => {
   const user = await User.findById(id).select('-password');
   if (!user) {
     throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
+  }
+
+  if (currentUser.role === 'admin' && user.role === 'admin') {
+    throw new AppError(
+      StatusCodes.FORBIDDEN,
+      'Admin cannot ban another admin.',
+    );
   }
 
   ensureManagerAccess(currentUser, user);
@@ -203,6 +217,13 @@ const updateUserStatus = async (
   const user = await User.findById(id).select('-password');
   if (!user) {
     throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
+  }
+
+  if (currentUser.role === 'admin' && user.role === 'admin') {
+    throw new AppError(
+      StatusCodes.FORBIDDEN,
+      'Admin cannot change status of another admin.',
+    );
   }
 
   ensureManagerAccess(currentUser, user);
@@ -229,6 +250,13 @@ const getUserPermissions = async (id: string, currentUser: TAuthUser) => {
     throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
   }
 
+  if (currentUser.role === 'admin' && user.role === 'admin') {
+    throw new AppError(
+      StatusCodes.FORBIDDEN,
+      'Admin cannot view permissions of another admin.',
+    );
+  }
+
   ensureManagerAccess(currentUser, user as TAuthUser);
 
   return user.permissions;
@@ -242,6 +270,13 @@ const updateUserPermissions = async (
   const user = await User.findById(id).select('-password');
   if (!user) {
     throw new AppError(StatusCodes.NOT_FOUND, 'User not found!');
+  }
+
+  if (currentUser.role === 'admin' && user.role === 'admin') {
+    throw new AppError(
+      StatusCodes.FORBIDDEN,
+      'Admin cannot edit permissions of another admin.',
+    );
   }
 
   ensureManagerAccess(currentUser, user);
